@@ -32,6 +32,7 @@ ThreadPool::~ThreadPool(){
 }
 
 void ThreadPool::shutdown() {
+    // 当前约束：ThreadPool 的 Shutdown 由一个管理线程负责，不能从 Worker 内部调用，也不能由多个线程同时调用。
     queue_.shutdown();
     for (std::thread& worker: workers_) {
         if (worker.joinable()) {
