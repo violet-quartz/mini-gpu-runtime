@@ -25,5 +25,9 @@ add_executable(future-practice
     src/future.cpp
 )
 
+add_executable(packaged-task-practice
+    src/packaged_task.cpp
+)
+
 target_link_libraries(mini-runtime PRIVATE task_queue)
 

@@ -1,18 +1,6 @@
 #include "task_queue.h"
 #include <utility>
 
-bool TaskQueue::submit(std::function<void()> task) {
-    {
-        std::lock_guard<std::mutex> lock(mutex_);
-        if (stopping_) {
-            return false;
-        }
-        tasks_.push(std::move(task));
-    }
-    cv_.notify_one();
-    return true;
-}
-
 bool TaskQueue::run_one() {
     std::function<void()> task;
     {
