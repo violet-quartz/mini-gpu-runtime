@@ -1,50 +1,49 @@
-#include "task_queue.h"
+#include "thread_pool.h"
 #include <iostream>
 #include <thread>
 #include <string>
 #include <stdexcept>
 #include <exception>
+#include <atomic>
+#include <cassert>
+#include <chrono>
 
-
-void worker_loop(TaskQueue& queue) {
-    // std::packaged_task 会自动捕获它所执行的任务抛出的异常。wait_and_run() 正常返回 true。
-    while (queue.wait_and_run()) {
+void test_raii() { // 验证 ~ThreadPool() 的正确性， 调用 shutdown()，任务完成后 worker 退出
+    std::atomic<int> completed(0);
+    {
+        ThreadPool pool(2);
+        for (int i = 0; i < 10; i++) {
+            pool.submit([&completed] {
+                std::this_thread::sleep_for(
+                    std::chrono::milliseconds(10)
+                ); // std::thread, 当前线程（正在执行这段 lambda 的线程）
+                ++completed;
+            });
+        }
+    }
+    // assert(completed.load() == 10); 
+    // 如果编译时定义了 NDEBUG，assert() 会被禁用；改为下面的方式，使用 Release 构建，测试也会执行。
+    if (completed.load() != 10) {
+        throw std::runtime_error("RAII test failed");
     }
 }
 
 int main() {
-    TaskQueue queue;
-    std::mutex cout_mutex;
+    ThreadPool pool(2);
 
-    std::thread worker1([&queue, &cout_mutex] {
-        worker_loop(queue);
-        {
-            std::lock_guard<std::mutex> lock(cout_mutex);
-            std::cout << "Worker 1 has exited.\n";
-        }
-    });
-
-    std::thread worker2([&queue, &cout_mutex] {
-        worker_loop(queue);
-        {
-            std::lock_guard<std::mutex> lock(cout_mutex);
-            std::cout << "Worker 2 has exited.\n";
-        }
-    });
-
-    auto future1 = queue.submit([] {
+    auto future1 = pool.submit([] {
         return 100 + 200;
     });
 
-    auto future2 = queue.submit([] {
+    auto future2 = pool.submit([] {
         return std::string("GPU task completed");
     });
 
-    auto future3 = queue.submit([]() -> int {
+    auto future3 = pool.submit([]() -> int {
         throw std::runtime_error("Task failed");
     });
 
-    auto future4 = queue.submit([]() -> int {
+    auto future4 = pool.submit([]() -> int {
         return 400;
     });
 
@@ -76,10 +75,28 @@ int main() {
         std::cout << "Task 4 failed: " << e.what() << '\n';
     }
 
-    queue.shutdown();
+    pool.shutdown();
+    pool.shutdown();
 
-    worker1.join();
-    worker2.join();
+    try {
+        auto future5 = pool.submit([]() -> int {
+            return 500;
+        });
+    } catch (const std::runtime_error& e) {
+        std::cout << "Failed to submit task 5. Runtime error: " << e.what() << "\n";
+    } catch (const std::exception& e) {
+        std::cout << "Failed to submit task 5. Other exception: " << e.what() << "\n";
+    }
+
+    try {
+        ThreadPool pool2(0);
+    } catch (const std::invalid_argument& e) {
+        std::cout << "Invalid argument: " << e.what() << "\n";
+    } catch (const std::exception& e) {
+        std::cout << "Other exception: " << e.what() << "\n";
+    }
+
+    test_raii();
 
     return 0;
 }

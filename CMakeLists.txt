@@ -12,10 +12,16 @@ add_library(task_queue
     src/task_queue.cpp
 )
 
-target_include_directories(task_queue
-    PUBLIC
-        ${CMAKE_CURRENT_SOURCE_DIR}/include
+add_library(thread_pool
+    src/thread_pool.cpp
 )
+
+foreach(target IN ITEMS task_queue thread_pool)
+    target_include_directories(${target}
+        PUBLIC
+            ${CMAKE_CURRENT_SOURCE_DIR}/include
+    )
+endforeach()
 
 add_executable(mini-runtime
     src/main.cpp
@@ -29,5 +35,9 @@ add_executable(packaged-task-practice
     src/packaged_task.cpp
 )
 
-target_link_libraries(mini-runtime PRIVATE task_queue)
+target_link_libraries(mini-runtime 
+    PRIVATE 
+    task_queue
+    thread_pool
+)
 
