@@ -1,4 +1,5 @@
 #include "gpu_buffer.h"
+#include <stdexcept>
 #include <cuda_runtime.h>
 
 
@@ -7,11 +8,11 @@ GpuBuffer::GpuBuffer(std::size_t bytes) {
         return;
     }
 
-    cudaError_t err = cudaMalloc(&ptr_, bytes_);
+    cudaError_t err = cudaMalloc(&ptr_, bytes);
 
     if (err != cudaSuccess) {
         throw std::runtime_error(
-            cudaGetErrorString(err);
+            cudaGetErrorString(err)
         );
     }
     bytes_ = bytes;
@@ -29,7 +30,7 @@ GpuBuffer::GpuBuffer(GpuBuffer&& other) noexcept
     other.bytes_ = 0;
 }
 
-GpuBuffer::GpuBuffer& operator=(GpuBuffer&& other) noexcept
+GpuBuffer& GpuBuffer::operator=(GpuBuffer&& other) noexcept
 {
     if (this == &other) {
         return *this;
