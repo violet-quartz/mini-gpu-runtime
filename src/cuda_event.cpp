@@ -29,7 +29,7 @@ CudaEvent& CudaEvent::operator=(CudaEvent&& other) noexcept {
     if (event_) {
         cudaEventDestroy(event_);
     }
-    event = other.event_;
+    event_ = other.event_;
     other.event_ = nullptr;
     return *this;
 }
@@ -39,14 +39,18 @@ cudaEvent_t CudaEvent::get() const noexcept {
 }
 
 void CudaEvent::record(const CudaStream& stream) {
-    cudaStream_t sm = stream.get();
-    if (sm) {
-        cudaError_t err = cudaEventRecord(event_, sm));
-        if (err != cudaSuccess) {
-            throw std::runtime_error(cudaGetErrorString(err));
-        }
-    } else {
+    if (event_ == nullptr) {
         throw std::logic_error("Cannot record an empty CudaEvent");
+    }
+
+    cudaStream_t sm = stream.get();
+    if (sm == nullptr) {
+        throw std::logic_error("Cannot record an event on an empty CudaStream");
+    }
+
+    cudaError_t err = cudaEventRecord(event_, sm);
+    if (err != cudaSuccess) {
+        throw std::runtime_error(cudaGetErrorString(err));
     }
 }
 

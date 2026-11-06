@@ -5,6 +5,9 @@
 #include <cassert>
 #include <cuda_runtime.h>
 #include <cstddef>
+#include <stdexcept>
+#include <vector>
+#include <utility>
 
 namespace {
 
@@ -24,7 +27,7 @@ void test_construct() {
     assert(e2.get() != nullptr);
 }
 
-void test_move_constructor() {
+void test_move_construct() {
     CudaEvent e1;
     cudaEvent_t original = e1.get();
 
@@ -35,7 +38,7 @@ void test_move_constructor() {
 
 void test_move_assignment() {
     CudaEvent e1;
-    cudaEvent_t ee1 = d1.get();
+    cudaEvent_t ee1 = e1.get();
     
     CudaEvent e2;
     e2 = std::move(e1);
@@ -73,14 +76,14 @@ void test_record_and_synchronize() {
     event.synchronize();
 
     assert(event.query());
-    std::vector<float> hostData(count);
+    std::vector<float> hostData(count, -1.0f);
     check_cuda(cudaMemcpy(
         hostData.data(), 
         buffer.data(), 
-        count, 
+        buffer.size(), 
         cudaMemcpyDeviceToHost
     ));
-    for (float value: data) {
+    for (float value: hostData) {
         assert(value == 0);
     }
 }
@@ -92,7 +95,7 @@ void test_moved_from_operations() {
 
     bool caught = false;
     try{
-        bool success = e1.query();
+        (void)e1.query();
     } catch (const std::logic_error&) {
         caught = true;
     }
@@ -115,8 +118,24 @@ void test_moved_from_operations() {
     assert(caught);
 
     e2.record(stream);
-    bool res = e2.query();
     e2.synchronize();
+    assert(e2.query());
+}
+
+void test_record_with_moved_from_stream() {
+    CudaStream stream1;
+    CudaStream stream2(std::move(stream1));
+    CudaEvent event;
+
+    bool caught = false;
+
+    try {
+        event.record(stream1);
+    } catch (const std::logic_error&) {
+        caught = true;
+    }
+
+    assert(caught);
 }
 
 int main() {
@@ -124,7 +143,9 @@ int main() {
     test_move_construct();
     test_move_assignment();
     test_self_move();
+    test_query_before_record();
     test_record_and_synchronize();
     test_moved_from_operations();
+    test_record_with_moved_from_stream();
     return 0;
 }
