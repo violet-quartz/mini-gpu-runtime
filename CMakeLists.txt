@@ -24,8 +24,11 @@ add_library(gpu_buffer
 add_library(cuda_stream
     src/cuda_stream.cpp
 )
+add_library(cuda_event
+    src/cuda_event.cpp
+)
 
-foreach(target IN ITEMS task_queue thread_pool gpu_buffer cuda_stream)
+foreach(target IN ITEMS task_queue thread_pool gpu_buffer cuda_stream cuda_event)
     target_include_directories(${target}
         PUBLIC
             ${CMAKE_CURRENT_SOURCE_DIR}/include
@@ -36,7 +39,7 @@ target_link_libraries(thread_pool
     PUBLIC task_queue
 )
 
-foreach(target IN ITEMS gpu_buffer cuda_stream)
+foreach(target IN ITEMS gpu_buffer cuda_stream cuda_event)
     target_link_libraries(${target}
         PUBLIC CUDA::cudart
     )
@@ -57,6 +60,9 @@ add_executable(test_gpu_buffer
 add_executable(test_cuda_stream
     tests/test_cuda_stream.cpp
 )
+add_executable(test_cuda_event
+    tests/test_cuda_event.cpp
+)
 target_link_libraries(mini-runtime 
     PRIVATE 
     thread_pool
@@ -68,6 +74,13 @@ target_link_libraries(test_cuda_stream
     cuda_stream
     gpu_buffer
 )
+target_link_libraries(test_cuda_event
+    PRIVATE
+    cuda_event
+    cuda_stream
+    gpu_buffer
+)
 
 add_test(NAME gpu_buffer_tests COMMAND test_gpu_buffer)
 add_test(NAME cuda_stream_tests COMMAND test_cuda_stream)
+add_test(NAME cuda_event_tests COMMAND test_cuda_event)
