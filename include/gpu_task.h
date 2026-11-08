@@ -1,8 +1,10 @@
-#include "cuda_stream.h"
+#pragma once
+
+#include <cstddef>
 #include "cuda_event.h"
 #include "gpu_buffer.h"
 
-#include <cstddef>
+class CudaStream;
 
 class GpuTask {
 public:

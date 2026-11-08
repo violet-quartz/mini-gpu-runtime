@@ -1,6 +1,7 @@
 #include "gpu_task.h"
 #include "gpu_buffer.h"
 #include "cuda_event.h"
+#include "cuda_stream.h"
 
 #include <cuda_runtime.h>
 #include <utility>

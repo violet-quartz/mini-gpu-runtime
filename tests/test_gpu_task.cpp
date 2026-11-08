@@ -1,5 +1,6 @@
 #include "test_helpers.h"
 #include "gpu_task.h"
+#include "cuda_stream.h"
 
 #include <cuda_runtime.h>
 #include <cstddef>
