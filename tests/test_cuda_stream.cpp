@@ -1,56 +1,54 @@
+#include "test_helpers.h"
 #include "cuda_stream.h"
 #include "gpu_buffer.h"
 
-#include <cassert>
 #include <cuda_runtime.h>
 #include <cstddef>
-#include <stdexcept>
 #include <utility>
 #include <vector>
 
 namespace {
 
-void check_cuda(cudaError_t err) {
-    if (err != cudaSuccess) {
-        throw std::runtime_error(cudaGetErrorString(err));
-    }
-}
-
-}
-
 void test_construct() {
     CudaStream stream;
     const cudaStream_t original = stream.get();
-    assert(original != nullptr);
+    require(original != nullptr);
+}
 
+void test_move_construct() {
+    CudaStream stream;
+    const cudaStream_t original = stream.get();
     CudaStream stream2(std::move(stream));
-    assert(stream2.get() == original);
-    assert(stream.get() == nullptr);
+    require(stream2.get() == original);
+    require(stream.get() == nullptr);
 }
 
 void test_move_assignment() {
     CudaStream stream1;
     cudaStream_t s1 = stream1.get();
     CudaStream stream2;
-    cudaStream_t s2 = stream2.get();
 
     // test move assignment
     stream2 = std::move(stream1);
-    assert(stream2.get() == s1);
-    assert(stream1.get() == nullptr);
-
-    // test self move assignment
-    stream2 = std::move(stream2);
-    assert(stream2.get() == s1);
-    assert(s2 != nullptr);
+    require(stream2.get() == s1);
+    require(stream1.get() == nullptr);
 
     // test move assignment to empty
     CudaStream source;
     CudaStream destination(std::move(source));
     cudaStream_t original = destination.get();
     source = std::move(destination);
-    assert(source.get() == original);
-    assert(destination.get() == nullptr);
+    require(source.get() == original);
+    require(destination.get() == nullptr);
+}
+
+void test_self_move() {
+    CudaStream stream;
+    const cudaStream_t original = stream.get();
+    CudaStream& alias = stream;
+    stream = std::move(alias);
+    require(stream.get() == original);
+    stream.synchronize();
 }
 
 void test_synchronize() {
@@ -66,7 +64,7 @@ void test_synchronize() {
     std::vector<float> hostData(count);
     check_cuda(cudaMemcpy(hostData.data(), buffer.data(), bytes, cudaMemcpyDeviceToHost));
     for (float value : hostData) {
-        assert(value == 0);
+        require(value == 0);
     }
 }
 
@@ -74,20 +72,17 @@ void test_moved_from_synchronize() {
     CudaStream stream1;
     CudaStream stream2(std::move(stream1));
 
-    bool caught = false;
-    try{
-        stream1.synchronize();
-    } catch (const std::logic_error&) {
-        caught = true;
-    }
-
-    assert(caught);
+    expect_logic_error([&] { stream1.synchronize(); });
     stream2.synchronize();
 }
 
+} // namespace
+
 int main() {
-    test_construct();
-    test_move_assignment();
-    test_synchronize();
-    return 0;
+    run_test("test_construct", test_construct);
+    run_test("test_move_construct", test_move_construct);
+    run_test("test_self_move", test_self_move);
+    run_test("test_move_assignment", test_move_assignment);
+    run_test("test_synchronize", test_synchronize);
+    run_test("test_moved_from_synchronize", test_moved_from_synchronize);
 }
