@@ -30,8 +30,11 @@ add_library(cuda_event
 add_library(gpu_task 
     src/gpu_task.cpp
 )
+add_library(gpu_task_scheduler
+    src/gpu_task_scheduler.cpp
+)
 
-foreach(target IN ITEMS task_queue thread_pool gpu_buffer cuda_stream cuda_event gpu_task)
+foreach(target IN ITEMS task_queue thread_pool gpu_buffer cuda_stream cuda_event gpu_task gpu_task_scheduler)
     target_include_directories(${target}
         PUBLIC
             ${CMAKE_CURRENT_SOURCE_DIR}/include
@@ -47,6 +50,10 @@ target_link_libraries(gpu_task
     gpu_buffer
     cuda_stream
     CUDA::cudart
+)
+target_link_libraries(gpu_task_scheduler
+    PUBLIC
+    gpu_task
 )
 
 foreach(target IN ITEMS gpu_buffer cuda_stream cuda_event)
@@ -76,6 +83,9 @@ add_executable(test_cuda_event
 add_executable(test_gpu_task 
     tests/test_gpu_task.cpp
 )
+add_executable(test_gpu_task_scheduler
+    tests/test_gpu_task_scheduler.cpp
+)
 target_link_libraries(mini-runtime 
     PRIVATE 
     thread_pool
@@ -98,8 +108,14 @@ target_link_libraries(test_gpu_task
     gpu_task
     cuda_stream
 )
+target_link_libraries(test_gpu_task_scheduler
+    PRIVATE
+    gpu_task_scheduler
+    gpu_task
+)
 
 add_test(NAME gpu_buffer_tests COMMAND test_gpu_buffer)
 add_test(NAME cuda_stream_tests COMMAND test_cuda_stream)
 add_test(NAME cuda_event_tests COMMAND test_cuda_event)
 add_test(NAME gpu_task_tests COMMAND test_gpu_task)
+add_test(NAME gpu_task_scheduler_tests COMMAND test_gpu_task_scheduler)

@@ -35,4 +35,14 @@ void expect_logic_error(Function&& operation) {
     throw std::runtime_error("Expected std::logic_error");
 }
 
+// Precondition: task.wait() has completed successfully.
+void check_bytes(const GpuTask& task, unsigned char expected) {
+    std::vector<unsigned char> host(task.size());
+    check_cuda(cudaMemcpy(host.data(), task.data(), task.size(),
+                          cudaMemcpyDeviceToHost));
+    for (unsigned char value : host) {
+        require(value == expected);
+    }
+}
+
 } // namespace
