@@ -1,5 +1,6 @@
 # CMake build output
 /build/
+/experiments/results/
 /cmake-build-*/
 CMakeFiles/
 CMakeCache.txt
@@ -14,6 +15,7 @@ compile_commands.json
 *.dylib
 *.dll
 *.exe
+__pycache__/
 
 # IDE and editor files
 .vscode/
