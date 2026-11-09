@@ -66,10 +66,10 @@ add_executable(mini-runtime
     src/main.cpp
 )
 add_executable(future-practice
-    src/future.cpp
+    examples/future.cpp
 )
 add_executable(packaged-task-practice
-    src/packaged_task.cpp
+    examples/packaged_task.cpp
 )
 add_executable(test_gpu_buffer
     tests/test_gpu_buffer.cpp
