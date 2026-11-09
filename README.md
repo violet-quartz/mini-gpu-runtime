@@ -1,8 +1,8 @@
 # Mini GPU Runtime
 
-一个用于学习 C++ 并发编程、CUDA Runtime 和 GPU 异步执行机制的小型实验项目。
+Mini GPU Runtime 是一个基于 C++17 和 CUDA Runtime API 构建的轻量级 GPU Runtime 实验项目，用于熟悉 CUDA Runtime 和 GPU 异步执行机制。
 
-项目从 CPU 任务队列和线程池开始，逐步实现 CUDA 资源管理、异步任务封装和多 Stream 调度，并通过 Nsight Systems 分析实际 GPU 执行行为。
+项目涵盖 CPU 任务调度、CUDA 资源管理、GPU 异步任务封装及多 Stream 调度，并通过 Nsight Systems 对 GPU 执行行为和性能特征进行分析。
 
 ## 已实现功能
 
