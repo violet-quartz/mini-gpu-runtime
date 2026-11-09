@@ -86,6 +86,10 @@ add_executable(test_gpu_task
 add_executable(test_gpu_task_scheduler
     tests/test_gpu_task_scheduler.cpp
 )
+add_executable(profile_scheduler
+    experiments/profile_scheduler.cpp
+)
+target_link_libraries(profile_scheduler PRIVATE gpu_task_scheduler)
 target_link_libraries(mini-runtime 
     PRIVATE 
     thread_pool
