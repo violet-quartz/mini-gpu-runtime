@@ -2,6 +2,7 @@
 
 #include <cstddef>
 #include "cuda_stream.h"
+#include <vector>
 
 class GpuTask;
 

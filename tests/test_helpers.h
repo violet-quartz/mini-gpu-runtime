@@ -1,8 +1,8 @@
 #pragma once
-
 #include <cuda_runtime.h>
 #include <iostream>
 #include <stdexcept>
+#include <vector>
 
 namespace {
 
@@ -36,7 +36,8 @@ void expect_logic_error(Function&& operation) {
 }
 
 // Precondition: task.wait() has completed successfully.
-void check_bytes(const GpuTask& task, unsigned char expected) {
+template <typename Task>
+void check_bytes(const Task& task, unsigned char expected) {
     std::vector<unsigned char> host(task.size());
     check_cuda(cudaMemcpy(host.data(), task.data(), task.size(),
                           cudaMemcpyDeviceToHost));

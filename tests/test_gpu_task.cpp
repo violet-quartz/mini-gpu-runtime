@@ -9,16 +9,6 @@
 
 namespace {
 
-// Precondition: task.wait() has completed successfully.
-void check_bytes(const GpuTask& task, unsigned char expected) {
-    std::vector<unsigned char> host(task.size());
-    check_cuda(cudaMemcpy(host.data(), task.data(), task.size(),
-                          cudaMemcpyDeviceToHost));
-    for (unsigned char value : host) {
-        require(value == expected);
-    }
-}
-
 void test_construct() {
     GpuTask task(4096);
     require(task.size() == 4096);
